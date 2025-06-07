@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ThreatLens — Threat Intelligence Dashboard</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        :root {
+            --accent: #19c37d;
+            --border: #2e3440;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 30px;
+            background: var(--bg, #181c20);
+            color: var(--text, #f3f4f6);
+            transition: background 0.3s, color 0.3s;
+        }
+        .toggle-switch {
+            position: fixed;
+            top: 18px;
+            right: 32px;
+            z-index: 10;
+        }
+        .toggle-switch button {
+            background: var(--card, #23272f);
+            color: var(--accent, #19c37d);
+            border: 1px solid var(--border, #2e3440);
+            border-radius: 22px;
+            padding: 7px 17px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 0.55em;
+        }
+        .logo-circle {
+            background: linear-gradient(135deg, #19c37d 60%, #29ffe6 100%);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 1.32em;
+            width: 2em;
+            height: 2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 16px #19c37d80;
+            border: 2.5px solid #20262d;
+        }
+        h1 {
+            margin-bottom: 8px;
+            color: var(--accent, #19c37d);
+            letter-spacing: 1.5px;
+            font-size: 2em;
+            font-family: 'Segoe UI Semibold', Arial, sans-serif;
+        }
+        label { color: var(--text-muted, #9da5b4); }
+        form { margin-bottom: 24px; }
+        input[type="text"], input[type="file"] {
+            width: 320px;
+            padding: 10px;
+            border: 1px solid var(--border, #2e3440);
+            background: var(--input, #23272f);
+            color: var(--text, #f3f4f6);
+            border-radius: 4px;
+            outline: none;
+            margin-right: 10px;
+        }
+        input[type="text"]:focus, input[type="file"]:focus { border-color: var(--accent, #19c37d); }
+        button[type="submit"] {
+            padding: 10px 18px;
+            background: var(--button, #19c37d);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(25, 195, 125, 0.08);
+        }
+        button[type="submit"]:hover { background: var(--button-hover, #13a469); }
+        pre {
+            background: var(--card, #23272f);
+            padding: 14px 18px;
+            border-radius: 8px;
+            border: 1px solid var(--border, #2e3440);
+            color: var(--text, #f3f4f6);
+            margin-top: 10px;
+            font-size: 1.04em;
+        }
+        .subtitle {
+            color: var(--text-muted, #9da5b4);
+            margin-bottom: 34px;
+            font-size: 1.13em;
+        }
+        h2, h3 {
+            margin-top: 25px;
+            color: var(--accent, #19c37d);
+        }
+        img.flag-icon {
+            vertical-align: middle;
+            margin-right: 4px;
+            width: 24px;
+            height: 18px;
+            display: inline;
+            border: none;
+            box-shadow: none;
+            background: transparent;
+        }
+        img.visualization {
+            margin-top: 16px;
+            background: var(--card, #23272f);
+            border-radius: 12px;
+            border: 1px solid var(--border, #2e3440);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.14);
+            max-width: 430px;
+            width: 100%;
+        }
+        .verdict-badge {
+            display: inline-block;
+            margin: 10px 0 4px 0;
+            font-size: 1.04em;
+            padding: 4px 13px;
+            border-radius: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            background: #181c20;
+            color: #fff;
+            box-shadow: 0 1px 10px rgba(25,195,125,0.12);
+            border: 1.5px solid var(--accent, #19c37d);
+        }
+        .verdict-safe {
+            background: #19c37d20;
+            color: #19c37d;
+            border-color: #19c37d;
+        }
+        .verdict-risky {
+            background: #ffd85933;
+            color: #ffd859;
+            border-color: #ffd859;
+        }
+        .verdict-malicious {
+            background: #ff4b5c22;
+            color: #ff4b5c;
+            border-color: #ff4b5c;
+        }
+        .verdict-na {
+            background: #aaa;
+            color: #23272f;
+            border-color: #bbb;
+        }
+        .action-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 1.04em;
+            letter-spacing: 0.2px;
+            margin: 2px 0;
+        }
+        .action-block {
+            background: #ff4b5c33;
+            color: #ff4b5c;
+            border: 1.5px solid #ff4b5c;
+        }
+        .action-monitor {
+            background: #ffd85955;
+            color: #ffd859;
+            border: 1.5px solid #ffd859;
+        }
+        .action-safe {
+            background: #19c37d33;
+            color: #19c37d;
+            border: 1.5px solid #19c37d;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: var(--card, #23272f);
+            border-radius: 10px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid var(--border, #2e3440);
+        }
+        th { background: var(--accent,#19c37d); color: #fff; }
+        footer {
+            margin-top: 48px;
+            color: var(--text-muted, #9da5b4);
+            font-size: 0.98em;
+            text-align: center;
+        }
+        footer a {
+            color: var(--accent, #19c37d);
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            input[type="text"], input[type="file"] { width: 90vw; }
+            img.visualization { max-width: 97vw; }
+            h1 { font-size: 1.3em; }
+            table { font-size: 0.96em; }
+        }
+        /* LIGHT MODE */
+        body.light {
+            --bg: #f7f7f9;
+            --card: #fff;
+            --accent: #277be7;
+            --input: #f5f8fa;
+            --text: #23272f;
+            --text-muted: #68707b;
+            --button: #277be7;
+            --button-hover: #185ba6;
+            --border: #d8dbe0;
+        }
+        body.light h1, body.light h2, body.light h3 { color: var(--accent, #277be7); }
+        body.light pre { background: var(--card, #fff); color: var(--text, #23272f); border: 1px solid var(--border, #d8dbe0); }
+        body.light .toggle-switch button { background: var(--card, #fff); color: var(--accent, #277be7); border: 1px solid var(--border, #d8dbe0);}
+        body.light .verdict-safe { background: #d2ffd6; color: #1e6b42; border-color: #19c37d;}
+        body.light .verdict-risky { background: #ffeccc; color: #b38f00; border-color: #ffd859;}
+        body.light .verdict-malicious { background: #ffd6d6; color: #b31818; border-color: #ff4b5c;}
+        body.light .verdict-na { background: #e1e1e1; color: #23272f; border-color: #bbb;}
+        body.light .action-block { background: #ffd6d6; color: #b31818; }
+        body.light .action-monitor { background: #fffbe7; color: #b38f00; }
+        body.light .action-safe { background: #d2ffd6; color: #1e6b42; }
+    </style>
+</head>
+<body>
+    <div class="toggle-switch">
+        <button id="mode-toggle" title="Toggle light/dark mode">🌙 Dark</button>
+    </div>
+    <div class="logo-title">
+        <span class="logo-circle">👁️</span>
+        <h1>ThreatLens</h1>
+    </div>
+    <div class="subtitle">
+        Live Threat Reputation Lookups. <span style="color:var(--accent);">Instant Insight, Zero Guesswork.</span>
+    </div>
+    <!-- Batch lookup form -->
+    <form method="post" enctype="multipart/form-data" style="margin-bottom:28px;">
+        <label><b>Batch Lookup (CSV):</b></label>
+        <input type="file" name="batchfile" accept=".csv">
+        <button type="submit">Upload & Scan</button>
+        <span style="color:var(--text-muted);font-size:0.98em;">(CSV with a column called <code>query</code>)</span>
+    </form>
+    <!-- Downloadable CSV sample -->
+    <a href="/static/sample_batch.csv" style="font-size:0.97em;color:var(--accent);text-decoration:underline;" download>Download sample CSV</a>
+    <!-- Single lookup form -->
+    <form method="post" autocomplete="off">
+        <label>IP Address or Domain:</label>
+        <input type="text" name="query" value="{{ query | default('') }}" required>
+        <button type="submit" id="submit-btn">Check Threat</button>
+        <span id="spinner" style="display:none;margin-left:10px;color:var(--accent);font-size:1.1em;">⏳ Checking...</span>
+    </form>
+    {% if history and history|length > 0 %}
+        <div style="margin-bottom:14px;">
+            <strong style="color:var(--accent);">Recent Lookups:</strong>
+            <ul style="list-style:none;padding-left:0;font-size:0.98em;">
+            {% for item in history %}
+                <li style="display:inline;margin-right:12px;">
+                  {{ item.query }}
+                  {% if item.verdict %}
+                    <span class="verdict-badge verdict-{{ item.verdict|lower }}">{{ item.verdict }}</span>
+                  {% else %}
+                    <span class="verdict-badge verdict-na">N/A</span>
+                  {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <!-- Single enrichment -->
+    {% if enrich_single.country or enrich_single.org or enrich_single.asn %}
+        <div style="margin:12px 0 8px 0;font-size:1.07em;">
+            <b>Country:</b>
+            {% if enrich_single.country %}
+                <img src="https://flagcdn.com/{{ enrich_single.country | lower }}.svg"
+                     class="flag-icon" alt="{{ enrich_single.country }} flag">
+            {% endif %}
+            {{ enrich_single.country }}
+            &nbsp; <b>Org:</b> {{ enrich_single.org }} &nbsp;
+            <b>ASN:</b> {{ enrich_single.asn }}
+        </div>
+    {% endif %}
+    {% if enrich_single.recommended_action %}
+        <div style="margin:8px 0;">
+            <span class="action-badge action-{{ enrich_single.recommended_action|lower }}">{{ enrich_single.recommended_action }}</span>
+            <span style="font-size:0.99em; color:var(--text-muted); margin-left:8px;">
+                (Recommended action)
+            </span>
+        </div>
+    {% endif %}
+    {% if result %}
+        <h2>Result:</h2>
+        <div style="display:flex; align-items:center; gap: 10px;">
+            <pre id="result-text">{{ result|safe }}</pre>
+            <button id="copy-btn" type="button" style="background:var(--accent);color:#fff;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;">Copy</button>
+        </div>
+    {% endif %}
+    {% if chart %}
+        <div>
+            <h3>Visualization:</h3>
+            <img src="data:image/png;base64,{{ chart }}" class="visualization">
+        </div>
+    {% endif %}
+    {% if batch_results %}
+        <h2>Batch Lookup Results:</h2>
+        <div style="overflow-x:auto;">
+            <table>
+                <tr>
+                    <th>Query</th>
+                    <th>Resolved IP</th>
+                    <th>Score</th>
+                    <th>Reports</th>
+                    <th>Verdict</th>
+                    <th>Country</th>
+                    <th>Org</th>
+                    <th>ASN</th>
+                    <th>Action</th>
+                    <th>Status</th>
+                </tr>
+                {% for row in batch_results %}
+                <tr>
+                    <td>{{ row.query }}</td>
+                    <td>{{ row.ip }}</td>
+                    <td>{{ row.score if row.score is not none else '' }}</td>
+                    <td>{{ row.reports if row.reports is not none else '' }}</td>
+                    <td>
+                      {% if row.verdict %}
+                        <span class="verdict-badge verdict-{{ row.verdict|lower }}">{{ row.verdict }}</span>
+                      {% else %}
+                        <span class="verdict-badge verdict-na">N/A</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                        {% if row.country %}
+                            <img src="https://flagcdn.com/{{ row.country | lower }}.svg"
+                                 class="flag-icon" alt="{{ row.country }} flag">
+                        {% endif %}
+                        {{ row.country }}
+                    </td>
+                    <td>{{ row.org }}</td>
+                    <td>{{ row.asn }}</td>
+                    <td>
+                      {% if row.recommended_action %}
+                        <span class="action-badge action-{{ row.recommended_action|lower }}">{{ row.recommended_action }}</span>
+                      {% else %}
+                        &mdash;
+                      {% endif %}
+                    </td>
+                    <td>{{ row.result }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
+    <footer>
+        &copy; 2025 ThreatLens by Teshera Kimbrough
+    </footer>
+    <script>
+        // Dark/light toggle
+        function setMode(mode) {
+            document.body.className = (mode === 'light') ? 'light' : '';
+            const btn = document.getElementById('mode-toggle');
+            if (mode === 'light') {
+                btn.textContent = "☀️ Light";
+                btn.title = "Switch to dark mode";
+            } else {
+                btn.textContent = "🌙 Dark";
+                btn.title = "Switch to light mode";
+            }
+            localStorage.setItem('theme', mode);
+        }
+        document.getElementById('mode-toggle').onclick = function() {
+            const mode = document.body.classList.contains('light') ? '' : 'light';
+            setMode(mode);
+        };
+        (function() {
+            const stored = localStorage.getItem('theme');
+            if (stored === 'light') setMode('light');
+        })();
+        // Copy to clipboard
+        document.addEventListener("DOMContentLoaded", function() {
+            var btn = document.getElementById('copy-btn');
+            if (btn) {
+                btn.onclick = function() {
+                    var text = document.getElementById('result-text').innerText;
+                    navigator.clipboard.writeText(text);
+                    btn.textContent = "Copied!";
+                    setTimeout(()=>btn.textContent="Copy", 1200);
+                };
+            }
+        });
+        // Spinner on submit
+        document.querySelectorAll('form')[1].onsubmit = function() {
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('spinner').style.display = '';
+        };
+    </script>
+</body>
+</html>
