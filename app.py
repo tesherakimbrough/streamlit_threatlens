@@ -128,4 +128,4 @@ if uploaded_file:
 
 # --- Footer ---
 st.markdown("---")
-st.markdown("Built by Teshera Kimbrough | GitHub: [ThreatLens](https://github.com/tesherakimbrough/streamlit_threatlens)")
+st.markdown("Built by Teshera Kimbrough 2025 | GitHub: [ThreatLens](https://github.com/tesherakimbrough/streamlit_threatlens)")
