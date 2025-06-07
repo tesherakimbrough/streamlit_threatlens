@@ -32,6 +32,22 @@ Built to empower security teams, IT professionals, and AI/data engineers with ac
 
 ---
 
+## 📢 New in this version → Multilingual UI support 🌍
+
+ThreatLens (Streamlit) now supports **automatic translation of result text** into multiple languages:
+
+✅ English  
+✅ Spanish  
+✅ French  
+✅ German  
+✅ Japanese  
+✅ Chinese (Simplified)
+
+👉 Users can select their language via dropdown → results will be translated automatically.  
+👉 This makes ThreatLens more accessible for **global security teams and international users**.
+
+---
+
 ## 📸 Screenshots
 
 ![ThreatLens Dashboard](screenshot.png)
